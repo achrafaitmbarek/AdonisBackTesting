@@ -1,0 +1,58 @@
+version: "3.9"
+
+services:
+  node:
+    build: .
+    container_name: adonis_testing_node
+    entrypoint: "tail -f /dev/null"
+    labels:
+      caddy: adonis-testing.aaa
+      caddy.tls: internal
+      caddy.reverse_proxy: "{{upstreams 3333}}"
+    networks:
+      - default
+      - global_reverse_proxy
+    volumes:
+      - ./:/app
+
+  # ------------------------------------------------------
+  # PostgreSQL database
+  # ------------------------------------------------------
+  database:
+    container_name: adonis_testing_database
+    environment:
+      POSTGRES_USER: "stb"
+      POSTGRES_PASSWORD: "stb"
+      POSTGRES_DB: "adonis_testing"
+    image: postgres:16.0
+    networks:
+      - default
+    restart: unless-stopped
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # ------------------------------------------------------
+  # Database visualizer
+  # ------------------------------------------------------
+  adminer:
+    container_name: adonis_testing_adminer
+    depends_on:
+      - database
+    image: adminer
+    labels:
+      caddy: "db.adonis-testing.aaa"
+      caddy.tls: internal
+      caddy.reverse_proxy: "{{upstreams 8080}}"
+    networks:
+      - default
+      - global_reverse_proxy
+    restart: unless-stopped
+
+networks:
+  default:
+    driver: bridge
+  global_reverse_proxy:
+    external: true
+
+volumes:
+  postgres_data: {}

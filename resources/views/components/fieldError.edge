@@ -1,0 +1,7 @@
+@if(flashMessages.has(`errors[${errorKey}]`))
+  <ul>
+    @each(message in flashMessages.get(`errors[${errorKey}]`))
+      <li>{{ message }}</li>
+    @end
+  </ul>
+@end
